@@ -1,0 +1,3 @@
+VHOST: /
+QUEUE: article-index-queue
+INDEX: v2

@@ -2,6 +2,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using ElasticsearchTestApp.Services;
+using RabbitMQ.Client;
 
 namespace ElasticsearchTestApp
 {
@@ -21,6 +22,19 @@ namespace ElasticsearchTestApp
 
             // Клиент регистрируется как Singleton
             builder.Services.AddSingleton(new ElasticsearchClient(settings));
+
+            #region -- RabbitMQ
+            builder.Services.AddSingleton(new ConnectionFactory
+            {
+                HostName = "localhost",
+                Port = 5672,
+                UserName = "rabbituser",
+                Password = "rabbitpassword"
+            });
+
+            builder.Services.AddSingleton<ArticleRabbitMqProducer>();
+            builder.Services.AddHostedService<RabbitMqToElasticHostedService>();
+            #endregion
 
             builder.Services.AddScoped<ArticleSearchService>();
 
