@@ -1,4 +1,5 @@
 
+using Confluent.Kafka;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using ElasticsearchTestApp.Services;
@@ -21,6 +22,12 @@ namespace ElasticsearchTestApp
 
             // Клиент регистрируется как Singleton
             builder.Services.AddSingleton(new ElasticsearchClient(settings));
+
+            builder.Services.AddSingleton(new ProducerConfig
+            {
+                BootstrapServers = "localhost:9094"
+            });
+            builder.Services.AddSingleton<ArticleKafkaProducer>();
 
             builder.Services.AddScoped<ArticleSearchService>();
 
