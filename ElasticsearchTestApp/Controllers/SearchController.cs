@@ -1,4 +1,5 @@
-﻿using ElasticsearchTestApp.Models;
+﻿using ElasticsearchTestApp.Data;
+using ElasticsearchTestApp.Models;
 using ElasticsearchTestApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,45 +10,25 @@ namespace ElasticsearchTestApp.Controllers
     public class SearchController : ControllerBase
     {
         private readonly ArticleSearchService _searchService;
+
         private readonly ArticleKafkaProducer _kafkaProducer;
 
-        public SearchController(ArticleSearchService searchService, ArticleKafkaProducer kafkaProducer)
+        private readonly ArticleDbContext _context;
+
+        public SearchController(ArticleSearchService searchService, ArticleKafkaProducer kafkaProducer, ArticleDbContext context)
         {
             _searchService = searchService;
             _kafkaProducer = kafkaProducer;
+            _context = context;
         }
 
-        [HttpGet("index")]
-        public async Task<IActionResult> Index()
+        [HttpPost("index")]
+        public async Task<IActionResult> Index([FromBody] ArticleDocument doc)
         {
-            var documents = new[]
-            {
-            new ArticleDocument
-            {
-                Id = 1,
-                Title = "Введение в Elasticsearch",
-                Content = "Моя первая статья по ASP.NET Core и Elasticsearch"
-            },
-            new ArticleDocument
-            {
-                Id = 2,
-                Title = "Поиск в .NET",
-                Content = "Полнотекстовый поиск в .NET"
-            },
-            new ArticleDocument
-            {
-                Id = 3,
-                Title = "Elasticsearch 9",
-                Content = "Работа с Elasticsearch 9 - быстрый старт"
-            }
-        };
-
-            foreach (var doc in documents)
-            {
-                await _kafkaProducer.PublishAsync(doc);
-            }
-
-            return Accepted(new { Message = "Статьи отправлены в Kafka. Ожидается фоновая индексация через Kafka Connect." });
+            await _context.ArticleDocuments.AddAsync(doc);
+            await _context.SaveChangesAsync();
+            // Мы сохранили только в БД. Остальное сделает Debezium.
+            return Accepted(new { Message = "Статья сохранена в БД." });
         }
 
         [HttpGet]

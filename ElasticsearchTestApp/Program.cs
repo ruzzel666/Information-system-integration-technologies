@@ -2,7 +2,9 @@
 using Confluent.Kafka;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
+using ElasticsearchTestApp.Data;
 using ElasticsearchTestApp.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ElasticsearchTestApp
 {
@@ -11,6 +13,15 @@ namespace ElasticsearchTestApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var connectionString = builder.Configuration.GetConnectionString("ArticleDbConnection");
+            builder.Services.AddDbContext<ArticleDbContext>(options =>
+            {
+                options.UseMySql(connectionString, ServerVersion.Parse("11.2-mariadb"), mySqlOptions =>
+                {
+                    mySqlOptions.EnableRetryOnFailure();
+                });
+            });
 
             // Add services to the container.
             builder.Services.AddEndpointsApiExplorer();
