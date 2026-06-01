@@ -18,6 +18,7 @@ services:
         soft: -1
         hard: -1
     networks:
+      - mariadbnet
       - elastic
 
   kibana:
@@ -38,6 +39,9 @@ volumes:
   esdata:
 
 networks:
+  mariadbnet:
+    name: mariadbnet
+    external: true
   elastic:
     name: elastic
     driver: bridge
